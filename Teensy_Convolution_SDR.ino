@@ -182,6 +182,7 @@
 
 /*  If you use the hardware made by Frank DD4WH & the T4 uncomment the next line */
 #define HARDWARE_DD4WH_T4
+#define HARDWARE_BICYCLEGUY_T4
 
 /*  If you use the hardware made by FrankB uncomment the next line */
 //#define HARDWARE_FRANKB
@@ -213,7 +214,7 @@
     recommendation: leave this uncommented */
 //#define USE_ATAN2FAST
 
-//#define MP3 
+#define MP3 
 
 #if defined(__IMXRT1062__)
 #define T4
@@ -913,6 +914,47 @@ Encoder encoder3  (15, 16); //(26, 28);
 ILI9341_t3n tft = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST);
 
 #elif defined(HARDWARE_DD4WH_T4)
+#if defined(HARDWARE_BICYCLEGUY_T4)
+Si5351 si5351;
+#define MASTER_CLK_MULT  4  // QSD frontend requires 4x clock
+
+#define BACKLIGHT_PIN   0  // unfortunately connected to 3V3 in DO7JBHs PCB 
+#define TFT_DC          5
+#define TFT_CS          9
+#define TFT_RST         255  // 255 = unused. connect to 3.3V
+#define TFT_MOSI        11
+#define TFT_SCLK        13
+#define TFT_MISO        12
+#define SDCARD_CS_PIN   10
+
+ILI9341_t3n tft = ILI9341_t3n(TFT_CS, TFT_DC, TFT_RST, TFT_MOSI, TFT_SCLK, TFT_MISO);
+
+Encoder tune      (16, 17);
+Encoder filter    (14, 15);
+Encoder encoder3  (5, 6); //(4, 5);
+
+#define   BUTTON_1_PIN      24 // encoder2 button = button3SW
+#define   BUTTON_2_PIN      26 // BAND+ = button2SW
+#define   BUTTON_3_PIN      28 // ???
+#define   BUTTON_4_PIN      30 //
+#define   BUTTON_5_PIN      25 // this is the pushbutton pin of the tune encoder
+#define   BUTTON_6_PIN      27 // this is the pushbutton pin of the filter encoder
+#define   BUTTON_7_PIN      32 // this is the menu button pin
+#define   BUTTON_8_PIN      29  //27 // this is the pushbutton pin of encoder 3
+
+Bounce button1 = Bounce(BUTTON_1_PIN, 50);
+Bounce button2 = Bounce(BUTTON_2_PIN, 50);
+Bounce button3 = Bounce(BUTTON_3_PIN, 50);
+Bounce button4 = Bounce(BUTTON_4_PIN, 50);
+Bounce button5 = Bounce(BUTTON_5_PIN, 50);
+Bounce button6 = Bounce(BUTTON_6_PIN, 50);
+Bounce button7 = Bounce(BUTTON_7_PIN, 50);
+Bounce button8 = Bounce(BUTTON_8_PIN, 50);
+
+float DD4WH_RF_gain = 6.0;
+
+#else
+
 Si5351 si5351;
 #define MASTER_CLK_MULT  4  // QSD frontend requires 4x clock
 
@@ -949,6 +991,7 @@ Bounce button7 = Bounce(BUTTON_7_PIN, 50);
 Bounce button8 = Bounce(BUTTON_8_PIN, 50);
 
 float DD4WH_RF_gain = 6.0;
+#endif
 
 #else
 // Optical Encoder connections
@@ -2960,7 +3003,7 @@ void setup() {
 
 #if defined(MP3)
   // initialize SD card slot
-  if (!(SD.begin(BUILTIN_SDCARD)))
+  if (!(SD.begin(SDCARD_CS_PIN)))
   {
     // print a message
     Serial.println("Unable to access the SD card");
@@ -3108,7 +3151,7 @@ void setup() {
 
 
   tft.begin();
-#if defined(HARDWARE_FRANKB)
+#if defined(HARDWARE_FRANKB) || defined(HARDWARE_BICYCLEGUY_T4)
   tft.setRotation( 1 );
 #else
   tft.setRotation( 3 );
