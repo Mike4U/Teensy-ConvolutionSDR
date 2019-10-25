@@ -2908,13 +2908,16 @@ void flexRamInfo(void)
   int itcm = 0;
   int dtcm = 0;
   int ocram = 0;
-  Serial.print("FlexRAM-Banks: [");
+  Serial.print("FlexRAM-Banks: [ ");
   for (int i = 15; i >= 0; i--) {
     switch ((IOMUXC_GPR_GPR17 >> (i * 2)) & 0b11) {
       case 0b00: Serial.print("."); break;
       case 0b01: Serial.print("O"); ocram++; break;
       case 0b10: Serial.print("D"); dtcm++; break;
       case 0b11: Serial.print("I"); itcm++; break;
+    }
+    if(i%4==0){
+      Serial.print(" ");
     }
   }
   Serial.print("] ITCM: ");
